@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnergyPulse AI - Forecasting Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-page hidden">
+    <!-- Glow Background Blobs -->
+    <div class="glow-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="navbar glass">
+        <div class="nav-brand">
+            <div class="logo-icon">
+                <i class="fa-solid fa-bolt-lightning text-accent"></i>
+            </div>
+            <h1>EnergyPulse AI</h1>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="user-profile">
+                <i class="fa-solid fa-circle-user"></i>
+                <span id="user-email">loading...</span>
+            </div>
+            <button id="btn-logout" class="btn btn-logout">
+                <span>Logout</span>
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="tab-overview">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Forecast Overview</span>
+                </button>
+                <button class="nav-item" data-tab="tab-comparison">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span>Model Comparison</span>
+                </button>
+                <button class="nav-item" data-tab="tab-predictor">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>What-If Predictor</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot pulse-green"></span>
+                    <span>XGBoost Active (Best Model)</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- OVERVIEW TAB -->
+            <section id="tab-overview" class="tab-pane active">
+                <div class="section-header">
+                    <h2>Real-time & Predictive Energy Overview</h2>
+                    <p>Track historical patterns and view the next 24 hours of energy consumption forecasts.</p>
+                </div>
+
+                <!-- KPI Cards Grid -->
+                <div class="kpi-grid">
+                    <div class="kpi-card glass hover-lift">
+                        <div class="kpi-icon icon-blue">
+                            <i class="fa-solid fa-plug"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <h3>Total Energy (Last 7D)</h3>
+                            <div class="kpi-value" id="kpi-total-energy">-- kWh</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass hover-lift">
+                        <div class="kpi-icon icon-green">
+                            <i class="fa-solid fa-gauge-high"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <h3>Peak Demand</h3>
+                            <div class="kpi-value" id="kpi-peak-demand">-- kW</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass hover-lift">
+                        <div class="kpi-icon icon-yellow">
+                            <i class="fa-solid fa-chart-bar"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <h3>Avg Power Factor</h3>
+                            <div class="kpi-value" id="kpi-avg-pf">--</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass hover-lift">
+                        <div class="kpi-icon icon-cyan">
+                            <i class="fa-solid fa-temperature-half"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <h3>Avg Temperature</h3>
+                            <div class="kpi-value" id="kpi-avg-temp">-- °C</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Chart Card -->
+                <div class="chart-card glass">
+                    <div class="chart-header">
+                        <h3>7-Day History & 24-Hour Forecast</h3>
+                        <div class="chart-actions">
+                            <span class="legend-item legend-history"><span class="legend-dot"></span> Historical</span>
+                            <span class="legend-item legend-forecast"><span class="legend-dot"></span> Forecast (XGBoost)</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Secondary Charts Grid -->
+                <div class="grid-2col">
+                    <!-- Weather Relationship -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h3>Energy vs. Temperature & Solar Radiation</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="weatherCorrelationChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Recent Performance Stats -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h3>Hourly Demand Profile (Diurnal Cycle)</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="diurnalProfileChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODEL COMPARISON TAB -->
+            <section id="tab-comparison" class="tab-pane">
+                <div class="section-header">
+                    <h2>Model Benchmarking & Performance</h2>
+                    <p>Compare the accuracy of statistical time series (ARIMA) against machine learning models (Random Forest, XGBoost).</p>
+                </div>
+
+                <div class="best-model-banner glass">
+                    <div class="banner-icon">
+                        <i class="fa-solid fa-medal text-gold"></i>
+                    </div>
+                    <div class="banner-text">
+                        <h3>XGBoost Identified as Best Model</h3>
+                        <p>With fine-tuned hyperparameters, XGBoost achieved an outstanding <strong>R² score</strong>, significantly reducing Mean Absolute Error (MAE) compared to Random Forest and ARIMA.</p>
+                    </div>
+                    <div class="banner-badge">
+                        <span>Winner</span>
+                    </div>
+                </div>
+
+                <!-- Model Metrics Comparison Grid -->
+                <div class="grid-3col">
+                    <div class="metric-summary-card glass">
+                        <h4>R² Score (Higher is Better)</h4>
+                        <div class="metric-comparison-list">
+                            <div class="metric-row winner">
+                                <span class="model-name">1. XGBoost</span>
+                                <span class="model-val" id="r2-xgb">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="model-name">2. Random Forest</span>
+                                <span class="model-val" id="r2-rf">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="model-name">3. ARIMA</span>
+                                <span class="model-val" id="r2-arima">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-summary-card glass">
+                        <h4>MAE (Lower is Better)</h4>
+                        <div class="metric-comparison-list">
+                            <div class="metric-row winner">
+                                <span class="model-name">1. XGBoost</span>
+                                <span class="model-val" id="mae-xgb">-- kWh</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="model-name">2. Random Forest</span>
+                                <span class="model-val" id="mae-rf">-- kWh</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="model-name">3. ARIMA</span>
+                                <span class="model-val" id="mae-arima">-- kWh</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metric-summary-card glass">
+                        <h4>RMSE (Lower is Better)</h4>
+                        <div class="metric-comparison-list">
+                            <div class="metric-row winner">
+                                <span class="model-name">1. XGBoost</span>
+                                <span class="model-val" id="rmse-xgb">-- kWh</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="model-name">2. Random Forest</span>
+                                <span class="model-val" id="rmse-rf">-- kWh</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="model-name">3. ARIMA</span>
+                                <span class="model-val" id="rmse-arima">-- kWh</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Metrics Charts -->
+                <div class="grid-2col">
+                    <!-- Error Comparison Chart -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h3>Error Metric Evaluation (RMSE & MAE)</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="metricsComparisonChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Feature Importance Chart -->
+                    <div class="chart-card glass">
+                        <div class="chart-header">
+                            <h3>Feature Importance (XGBoost vs. Random Forest)</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="featureImportanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 24h Forecast Comparison Chart -->
+                <div class="chart-card glass mt-4">
+                    <div class="chart-header">
+                        <h3>24-Hour Forecast Comparison against Actual Demand</h3>
+                        <p class="subtitle text-sm">Visualizing predictions of all three models against the actual recorded energy consumption.</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="forecastComparisonChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WHAT-IF PREDICTOR TAB -->
+            <section id="tab-predictor" class="tab-pane">
+                <div class="section-header">
+                    <h2>What-If Energy Predictor</h2>
+                    <p>Adjust environmental and temporal parameters to simulate energy consumption using the trained models.</p>
+                </div>
+
+                <div class="predictor-layout">
+                    <!-- Predictor Form -->
+                    <div class="predictor-form-card glass">
+                        <h3>Simulation Parameters</h3>
+                        <form id="predictor-form">
+                            <!-- Date and Time Selector -->
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="pred-datetime">Target Date & Time</label>
+                                    <input type="datetime-local" id="pred-datetime" required>
+                                </div>
+                            </div>
+
+                            <hr class="form-divider">
+
+                            <!-- Sliders -->
+                            <div class="slider-group">
+                                <div class="slider-header">
+                                    <label for="pred-temp">Temperature (°C)</label>
+                                    <span class="slider-val" id="val-temp">25.0 °C</span>
+                                </div>
+                                <input type="range" id="pred-temp" min="10" max="45" step="0.1" value="25.0">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-header">
+                                    <label for="pred-humidity">Humidity (%)</label>
+                                    <span class="slider-val" id="val-humidity">60 %</span>
+                                </div>
+                                <input type="range" id="pred-humidity" min="10" max="100" step="1" value="60">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-header">
+                                    <label for="pred-solar">Solar Radiation (W/m²)</label>
+                                    <span class="slider-val" id="val-solar">400 W/m²</span>
+                                </div>
+                                <input type="range" id="pred-solar" min="0" max="1200" step="10" value="400">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-header">
+                                    <label for="pred-wind">Wind Speed (m/s)</label>
+                                    <span class="slider-val" id="val-wind">5.0 m/s</span>
+                                </div>
+                                <input type="range" id="pred-wind" min="0" max="30" step="0.1" value="5.0">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-header">
+                                    <label for="pred-precip">Precipitation (mm)</label>
+                                    <span class="slider-val" id="val-precip">0.0 mm</span>
+                                </div>
+                                <input type="range" id="pred-precip" min="0" max="50" step="0.1" value="0.0">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-full mt-4">
+                                <span>Run Simulation</span>
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Simulation Results Display -->
+                    <div class="predictor-results-column">
+                        <div class="results-card glass">
+                            <h3>Simulation Results</h3>
+                            <div class="timestamp-display" id="result-timestamp">Select parameters and run simulation</div>
+                            
+                            <div class="prediction-output-box">
+                                <div class="model-output winner">
+                                    <div class="output-header">
+                                        <span class="badge">Best Model</span>
+                                        <span class="name">XGBoost</span>
+                                    </div>
+                                    <div class="value" id="pred-val-xgb">-- <span class="unit">kWh</span></div>
+                                </div>
+
+                                <div class="model-output-secondary-grid">
+                                    <div class="model-output-sec">
+                                        <span class="name">Random Forest</span>
+                                        <span class="value" id="pred-val-rf">-- <span class="unit">kWh</span></span>
+                                    </div>
+                                    <div class="model-output-sec">
+                                        <span class="name">ARIMA Baseline</span>
+                                        <span class="value" id="pred-val-arima">-- <span class="unit">kWh</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Analysis Card -->
+                        <div class="analysis-tip-card glass">
+                            <div class="tip-icon">
+                                <i class="fa-solid fa-lightbulb text-yellow"></i>
+                            </div>
+                            <div class="tip-content">
+                                <h4>Predictive Insight</h4>
+                                <p id="predictive-insight">Energy consumption peaks during afternoon hours due to higher temperatures and increased air conditioning loads, combined with peak solar radiation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Auth Script -->
+    <script src="/static/js/auth.js"></script>
+    <!-- Dashboard Script -->
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

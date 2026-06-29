@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Forecast - Sign In</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS (Confirming styles using Vanilla CSS inside style.css, but this structure will be clean) -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-page">
+    <div class="glow-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="auth-container glass">
+        <div class="auth-header">
+            <div class="logo-icon">
+                <i class="fa-solid fa-bolt-lightning text-accent"></i>
+            </div>
+            <h2>EnergyPulse AI</h2>
+            <p>Predictive Energy Consumption Forecasting</p>
+        </div>
+
+        <div id="auth-alert" class="alert hidden">
+            <span class="alert-msg"></span>
+        </div>
+
+        <form id="auth-form" class="auth-form">
+            <div class="form-group">
+                <label for="email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                <input type="email" id="email" placeholder="name@company.com" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+                <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <div class="auth-actions">
+                <button type="submit" id="btn-login" class="btn btn-primary">
+                    <span class="btn-text">Sign In</span>
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
+                <button type="button" id="btn-signup-toggle" class="btn btn-secondary">
+                    Create Account
+                </button>
+            </div>
+        </form>
+
+        <form id="signup-form" class="auth-form hidden">
+            <div class="form-group">
+                <label for="signup-email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                <input type="email" id="signup-email" placeholder="name@company.com" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="signup-password"><i class="fa-solid fa-lock"></i> Password</label>
+                <input type="password" id="signup-password" placeholder="Min. 6 characters" required autocomplete="new-password">
+            </div>
+
+            <div class="auth-actions">
+                <button type="submit" id="btn-register" class="btn btn-primary">
+                    <span class="btn-text">Register</span>
+                    <i class="fa-solid fa-user-plus"></i>
+                </button>
+                <button type="button" id="btn-login-toggle" class="btn btn-secondary">
+                    Back to Sign In
+                </button>
+            </div>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Protected by Supabase Authentication</p>
+        </div>
+    </div>
+
+    <!-- Auth Script -->
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>
